@@ -69,16 +69,61 @@ function createProgressBar(completed, total) {
   return wrapper;
 }
 
+function createDisciplineStatusTable(disciplines, disciplineResults) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "discipline-status-wrapper";
+
+  const title = document.createElement("div");
+  title.className = "discipline-status-title";
+  title.textContent = "Přehled disciplín";
+  wrapper.appendChild(title);
+
+  const table = document.createElement("table");
+  table.className = "results-table";
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Disciplína</th>
+        <th>Stav</th>
+      </tr>
+    </thead>
+  `;
+
+  const tbody = document.createElement("tbody");
+
+  disciplines.forEach((discipline) => {
+    const resultMap = disciplineResults?.[discipline];
+    const finished = resultMap && Object.keys(resultMap).length > 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="team-name">${discipline}</td>
+      <td class="place-cell ${finished ? "status-done" : "status-planned"}">
+        ${finished ? "Proběhla" : "Plánovaná"}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+
+  return wrapper;
+}
+
 function renderHome(data) {
   const ranking = document.getElementById("rankingContent");
   const upcoming = document.getElementById("upcomingContent");
   const loser = document.getElementById("loserInfo");
   const progressSection = document.getElementById("progressSection");
+  const disciplineStatusSection = document.getElementById("disciplineStatusSection");
 
   ranking.innerHTML = "";
   upcoming.innerHTML = "";
   loser.innerHTML = "";
   progressSection.innerHTML = "";
+  disciplineStatusSection.innerHTML = "";
 
   const sorted = calculatePoints(data.teams || [], data.disciplineResults || {});
 
@@ -122,6 +167,12 @@ function renderHome(data) {
   const completedCount = getCompletedDisciplinesCount(data.disciplineResults || {});
   const totalCount = (data.disciplines || []).length;
   progressSection.appendChild(createProgressBar(completedCount, totalCount));
+
+  if ((data.disciplines || []).length > 0) {
+    disciplineStatusSection.appendChild(
+      createDisciplineStatusTable(data.disciplines || [], data.disciplineResults || {})
+    );
+  }
 }
 
 subscribeToData(renderHome);

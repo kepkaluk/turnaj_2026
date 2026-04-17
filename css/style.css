@@ -1,12 +1,13 @@
 body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #111; }
+
 .header { text-align: center; background: #eaeaea; padding-top: 20px; }
 .header h1 { margin: 0 0 20px 0; font-size: 2.6rem; }
+
 .navbar { background: #333; padding: 15px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
 .navbar a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
 .navbar a:hover { text-decoration: underline; }
 
 .content { padding: 30px 20px 50px; }
-.container { max-width: 1000px; margin: 30px auto; padding: 20px; }
 
 .section {
   background: white;
@@ -17,30 +18,33 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* TITULKY */
 .results-title { text-align: center; font-size: 2rem; font-weight: bold; margin-bottom: 20px; }
 .sub-title { text-align: center; font-size: 1.6rem; font-weight: bold; margin-bottom: 20px; }
 
-.results-table { width: 100%; border-collapse: collapse; background: white; table-layout: fixed; }
-.results-table th, .results-table td { border: 2px solid #111; padding: 14px 12px; font-size: 20px; }
-.results-table th { background: #f3f3f3; }
+/* TABULKY */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  table-layout: fixed;
+}
+
+.results-table th,
+.results-table td {
+  border: 2px solid #111;
+  padding: 14px 12px;
+  font-size: 20px;
+}
+
+.results-table th {
+  background: #f3f3f3;
+}
+
 .team-name { text-align: left; font-weight: bold; }
 .points-cell, .place-cell { text-align: center; }
 
-#rankingTable {
-  margin-bottom: 20px;
-}
-
-#rankingTable table {
-  max-width: 520px;
-  margin: 0 auto;
-}
-
-#rankingTable th,
-#rankingTable td {
-  padding: 10px 8px;
-  font-size: 17px;
-}
-
+/* POŘADÍ */
 .rank-gold td {
   background: #ffe58a;
   font-weight: bold;
@@ -56,6 +60,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   font-weight: bold;
 }
 
+/* KDO PLATÍ VEČEŘI */
 .loser-text {
   text-align: center;
   margin-top: 15px;
@@ -63,6 +68,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   font-weight: bold;
 }
 
+/* NADCHÁZEJÍCÍ DISCIPLÍNY */
 .upcoming-list { list-style: none; padding: 0; margin: 0; }
 
 .upcoming-item {
@@ -94,7 +100,6 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
 
 .upcoming-meta {
   font-size: 16px;
-  color: #111;
 }
 
 .upcoming-date {
@@ -104,6 +109,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   white-space: nowrap;
 }
 
+/* PROGRESS BAR */
 .progress-wrapper {
   max-width: 700px;
   margin: 0 auto;
@@ -119,7 +125,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
 .progress-bar-box {
   width: 100%;
   height: 28px;
-  border: 2px solid #7dff69;
+  border: 2px solid #111;
   border-radius: 20px;
   background: #e5e5e5;
   overflow: hidden;
@@ -127,7 +133,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
 
 .progress-bar-fill {
   height: 100%;
-  background: #8af680;
+  background: #98ff76;
   width: 0%;
   transition: width 0.3s ease;
 }
@@ -138,45 +144,55 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   color: #444;
 }
 
-.empty-message { text-align: center; font-size: 18px; line-height: 1.6; color: #444; }
-.hint { margin-top: 20px; text-align: center; color: #666; line-height: 1.6; }
-
-.discipline-nav { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
-.discipline-nav button { padding:8px 12px; cursor:pointer; border:none; background:#ddd; border-radius:6px; font-size: 15px; }
-
-.discipline-card {
-  margin-bottom: 24px;
-  border: 2px solid #000000;
-  border-radius: 10px;
-  padding: 16px;
-  scroll-margin-top: 20px;
+/* TABULKA STAVU DISCIPLÍN */
+.discipline-status-wrapper {
+  margin-top: 25px;
 }
 
-.discipline-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 14px; }
+.discipline-status-title {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.status-done {
+  background: #dff0d8;
+  font-weight: bold;
+}
+
+.status-planned {
+  background: #fce8b2;
+  font-weight: bold;
+}
+
+/* DISCIPLÍNY (ROZBALOVÁNÍ) */
+.discipline-card {
+  margin-bottom: 24px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.discipline-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
 
 .discipline-toggle {
   width: 100%;
   background: transparent;
   border: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  text-align: left;
   cursor: pointer;
-  color: #111;
-  font-size: 1rem;
-}
-
-.discipline-toggle:hover {
-  background: transparent;
+  text-align: left;
 }
 
 .discipline-toggle-arrow {
   font-size: 20px;
-  transition: transform 0.2s ease;
-  display: inline-block;
+  transition: transform 0.2s;
 }
 
 .discipline-toggle-arrow.open {
@@ -187,22 +203,13 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   margin-top: 16px;
 }
 
-.discipline-card .discipline-title {
-  margin-bottom: 0;
-}
-
-/* Tabulka disciplín – černý styl */
+/* TABULKA DISCIPLÍN – ČERNÁ */
 .discipline-card .results-table th {
   background: #111;
   color: white;
 }
 
-.discipline-card .results-table td {
-  background: white;
-  color: #111;
-}
-
-/* Zvýraznění umístění v disciplínách */
+/* MEDAILE V DISCIPLÍNÁCH */
 .discipline-gold td {
   background: #ffe58a !important;
   font-weight: bold;
@@ -218,68 +225,44 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
   font-weight: bold;
 }
 
+/* OSTATNÍ */
 .hidden { display: none; }
 
-label { display: block; margin-bottom: 8px; font-weight: bold; }
-input, select {
-  padding: 10px;
-  margin: 5px 0 15px 0;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 16px;
-}
-
-button { padding: 10px 16px; cursor: pointer; font-size: 16px; margin-right: 10px; margin-top: 6px; }
-.danger-button { background: #b91c1c; color: white; border: none; }
-.secondary-button { background: #e5e7eb; border: 1px solid #cfcfcf; }
-
-.rules-content {
+.empty-message {
+  text-align: center;
   font-size: 18px;
-  line-height: 1.6;
+  color: #444;
 }
 
-.rules-content h3 {
+.hint {
   margin-top: 20px;
+  text-align: center;
+  color: #666;
 }
 
-.rules-content ul {
-  margin-top: 8px;
-  padding-left: 20px;
-}
-
-.rules-content li {
-  margin-bottom: 6px;
-}
-
+/* RESPONSIVE */
 @media (max-width: 700px) {
   .header h1 { font-size: 2rem; }
-  .results-title, .sub-title { font-size: 1.5rem; }
-  .results-table th, .results-table td, .upcoming-item { font-size: 17px; padding: 10px 8px; }
 
-  #rankingTable th,
-  #rankingTable td {
-    font-size: 15px;
-    padding: 8px 6px;
+  .results-title,
+  .sub-title {
+    font-size: 1.5rem;
+  }
+
+  .results-table th,
+  .results-table td {
+    font-size: 17px;
+    padding: 10px 8px;
   }
 
   .upcoming-top {
     flex-direction: column;
-    align-items: flex-start;
   }
 
   .upcoming-date {
     margin-left: 0;
   }
 
-  .loser-text {
-    font-size: 16px;
-  }
-
-  .progress-text {
-    font-size: 16px;
-  }
-
-  .progress-subtext {
-    font-size: 15px;
-  }
+  .progress-text { font-size: 16px; }
+  .progress-subtext { font-size: 15px; }
 }
