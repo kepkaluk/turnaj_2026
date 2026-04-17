@@ -104,7 +104,6 @@ function createResultTable(teams, resultMap) {
 
   table.appendChild(tbody);
   return table;
-}
 
 function createDisciplineAccordion(teams, discipline, resultMap, index) {
   const wrapper = document.createElement("div");
