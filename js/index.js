@@ -31,12 +31,12 @@ function calculatePoints(teams, disciplineResults) {
 function createRankingTable(rows) {
   const table = document.createElement("table");
   table.className = "results-table";
+
   table.innerHTML = `
     <thead>
       <tr>
         <th>Pořadí</th>
         <th>Tým</th>
-        <th>Body</th>
       </tr>
     </thead>
   `;
@@ -45,17 +45,38 @@ function createRankingTable(rows) {
 
   rows.forEach((row, index) => {
     const tr = document.createElement("tr");
-
-    if (index === 0) tr.className = "rank-gold";
-    else if (index === 1) tr.className = "rank-silver";
-    else if (index === 2) tr.className = "rank-bronze";
-
     tr.innerHTML = `
       <td class="place-cell">${index + 1}.</td>
       <td class="team-name">${row.team}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  return table;
+}
+
+function createPointsTable(rows) {
+  const table = document.createElement("table");
+  table.className = "results-table";
+
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Tým</th>
+        <th>Body</th>
+      </tr>
+    </thead>
+  `;
+
+  const tbody = document.createElement("tbody");
+
+  rows.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="team-name">${row.team}</td>
       <td class="points-cell">${row.points}</td>
     `;
-
     tbody.appendChild(tr);
   });
 
@@ -64,34 +85,24 @@ function createRankingTable(rows) {
 }
 
 function renderHome(data) {
+  const rankingContent = document.getElementById("rankingContent");
   const resultsContent = document.getElementById("resultsContent");
   const upcomingContent = document.getElementById("upcomingContent");
-  const rankingTable = document.getElementById("rankingTable");
 
   const { teams, disciplines, disciplineSchedule, disciplineResults } = data;
 
+  rankingContent.innerHTML = "";
   resultsContent.innerHTML = "";
   upcomingContent.innerHTML = "";
-  rankingTable.innerHTML = "";
 
   if (teams.length === 0) {
+    rankingContent.innerHTML = "Nejsou žádné týmy.";
     resultsContent.innerHTML = "Nejsou žádné týmy.";
   } else {
     const sorted = calculatePoints(teams, disciplineResults);
 
-    rankingTable.appendChild(createRankingTable(sorted));
-
-    const table = document.createElement("table");
-    table.className = "results-table";
-    table.innerHTML = "<tr><th>Tým</th><th>Body</th></tr>";
-
-    sorted.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${row.team}</td><td>${row.points}</td>`;
-      table.appendChild(tr);
-    });
-
-    resultsContent.appendChild(table);
+    rankingContent.appendChild(createRankingTable(sorted));
+    resultsContent.appendChild(createPointsTable(sorted));
   }
 
   const upcoming = disciplines
