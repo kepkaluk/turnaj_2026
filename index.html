@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Párový turnaj 2026 - Domů</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #111; }
+    .header { text-align: center; background: #eaeaea; padding-top: 20px; }
+    .header h1 { margin: 0 0 20px 0; font-size: 2.6rem; }
+    .navbar { background: #333; padding: 15px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+    .navbar a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .content { padding: 30px 20px 50px; }
+    .section { background: white; padding: 25px; margin: 0 auto 25px auto; max-width: 1000px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .results-title { text-align: center; font-size: 2rem; font-weight: bold; margin-bottom: 20px; }
+    .sub-title { text-align: center; font-size: 1.6rem; font-weight: bold; margin-bottom: 20px; }
+    .results-table { width: 100%; border-collapse: collapse; background: white; table-layout: fixed; }
+    .results-table th, .results-table td { border: 2px solid #111; padding: 14px 12px; font-size: 20px; }
+    .results-table th { background: #f3f3f3; }
+    .team-name { text-align: left; font-weight: bold; width: 70%; }
+    .points-cell { text-align: center; font-weight: bold; width: 30%; }
+    .upcoming-list { list-style: none; padding: 0; margin: 0; }
+    .upcoming-item { padding: 16px 18px; border: 2px solid #111; border-radius: 10px; margin-bottom: 12px; background: #fafafa; font-size: 18px; }
+    .upcoming-top { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 8px; }
+    .upcoming-name { font-weight: bold; font-size: 20px; }
+    .upcoming-date { white-space: nowrap; font-weight: bold; }
+    .upcoming-meta { color: #444; line-height: 1.6; }
+    .empty-message { text-align: center; font-size: 18px; line-height: 1.6; color: #444; }
+    .hint { margin-top: 20px; text-align: center; color: #666; }
+    @media (max-width: 700px) {
+      .header h1 { font-size: 2rem; }
+      .results-title, .sub-title { font-size: 1.5rem; }
+      .results-table th, .results-table td, .upcoming-item { font-size: 17px; padding: 10px 8px; }
+      .upcoming-top { flex-direction: column; align-items: flex-start; }
+      .upcoming-name { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Párový turnaj 2026</h1>
+    <div class="navbar">
+      <a href="index.html">Domů</a>
+      <a href="disciplines.html">Disciplíny</a>
+      <a href="turnaj.html">Nastavení</a>
+      <a href="spravce.html">Správce</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="section">
+      <div class="results-title">Celkové pořadí</div>
+      <div id="resultsContent"></div>
+    </div>
+
+    <div class="section">
+      <div class="sub-title">Nadcházející disciplíny</div>
+      <div id="upcomingContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "parovyTurnajData";
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { teams: [], disciplines: [], disciplineSchedule: {}, disciplineResults: {} };
+        const parsed = JSON.parse(raw);
+        return {
+          teams: Array.isArray(parsed.teams) ? parsed.teams : [],
+          disciplines: Array.isArray(parsed.disciplines) ? parsed.disciplines : [],
+          disciplineSchedule: parsed.disciplineSchedule && typeof parsed.disciplineSchedule === "object" ? parsed.disciplineSchedule : {},
+          disciplineResults: parsed.disciplineResults && typeof parsed.disciplineResults === "object" ? parsed.disciplineResults : {}
+        };
+      } catch (error) {
+        console.error("Nepodařilo se načíst data:", error);
+        return { teams: [], disciplines: [], disciplineSchedule: {}, disciplineResults: {} };
+      }
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return dateString;
+      return new Intl.DateTimeFormat("cs-CZ").format(date);
+    }
+
+    function calculatePoints(teams, disciplineResults) {
+      const totals = {};
+      teams.forEach(team => totals[team] = 0);
+
+      Object.values(disciplineResults).forEach(resultMap => {
+        if (!resultMap || typeof resultMap !== "object") return;
+        Object.entries(resultMap).forEach(([team, place]) => {
+          const numericPlace = Number(place);
+          if (!(team in totals)) return;
+          if (numericPlace === 1) totals[team] += 2;
+          else if (numericPlace === 2) totals[team] += 1;
+        });
+      });
+
+      return teams
+        .map(team => ({ team, points: totals[team] }))
+        .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
+    }
+
+    function createTable(rows) {
+      const table = document.createElement("table");
+      table.className = "results-table";
+
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+
+      const teamHeader = document.createElement("th");
+      teamHeader.textContent = "Tým";
+      headerRow.appendChild(teamHeader);
+
+      const pointsHeader = document.createElement("th");
+      pointsHeader.textContent = "Body";
+      headerRow.appendChild(pointsHeader);
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      rows.forEach((rowData) => {
+        const row = document.createElement("tr");
+
+        const teamCell = document.createElement("td");
+        teamCell.className = "team-name";
+        teamCell.textContent = rowData.team;
+        row.appendChild(teamCell);
+
+        const pointsCell = document.createElement("td");
+        pointsCell.className = "points-cell";
+        pointsCell.textContent = String(rowData.points);
+        row.appendChild(pointsCell);
+
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function renderHome() {
+      const resultsContent = document.getElementById("resultsContent");
+      const upcomingContent = document.getElementById("upcomingContent");
+      const { teams, disciplines, disciplineSchedule, disciplineResults } = loadData();
+
+      resultsContent.innerHTML = "";
+      upcomingContent.innerHTML = "";
+
+      if (teams.length === 0) {
+        resultsContent.innerHTML = `
+          <div class="empty-message">
+            Nejprve přidej týmy v sekci <strong>Nastavení</strong>.
+          </div>
+          <div class="hint">
+            Jakmile je vyplníš, zobrazí se tady přehled bodů.
+          </div>
+        `;
+      } else {
+        const rows = calculatePoints(teams, disciplineResults);
+        resultsContent.appendChild(createTable(rows));
+      }
+
+      const upcoming = disciplines
+        .map((discipline) => {
+          const schedule = disciplineSchedule[discipline] || {};
+          return { name: discipline, date: schedule.date || "", time: schedule.time || "", place: schedule.place || "" };
+        })
+        .filter((item) => item.date)
+        .sort((a, b) => {
+          const aKey = `${a.date}T${a.time || "23:59"}`;
+          const bKey = `${b.date}T${b.time || "23:59"}`;
+          return aKey.localeCompare(bKey);
+        });
+
+      if (upcoming.length === 0) {
+        upcomingContent.innerHTML = `
+          <div class="empty-message">Zatím nejsou zadané žádné termíny disciplín.</div>
+          <div class="hint">Přidej termíny v sekci <strong>Správce</strong>.</div>
+        `;
+        return;
+      }
+
+      const list = document.createElement("ul");
+      list.className = "upcoming-list";
+
+      upcoming.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "upcoming-item";
+        li.innerHTML = `
+          <div class="upcoming-top">
+            <span class="upcoming-name">${item.name}</span>
+            <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
+          </div>
+          <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
+        `;
+        list.appendChild(li);
+      });
+
+      upcomingContent.appendChild(list);
+    }
+
+    renderHome();
+  </script>
+</body>
+</html>

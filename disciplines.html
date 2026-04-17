@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Párový turnaj 2026 - Disciplíny</title>
+  <style>
+    body { font-family: Arial; background:#f5f5f5; margin:0; }
+    .header { text-align:center; background:#eaeaea; padding-top:20px; }
+    .header h1 { margin-bottom:20px; }
+    .navbar { background:#333; padding:15px; display:flex; justify-content:center; gap:30px; }
+    .navbar a { color:white; text-decoration:none; font-weight:bold; }
+
+    .content { padding:30px 20px; }
+
+    .section {
+      background:white;
+      padding:25px;
+      margin:auto;
+      max-width:1000px;
+      border-radius:12px;
+    }
+
+    .discipline-nav {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    .discipline-nav button {
+      padding:8px 12px;
+      cursor:pointer;
+      border:none;
+      background:#ddd;
+      border-radius:6px;
+    }
+
+    .discipline-card {
+      margin-bottom:25px;
+      border:2px solid #ccc;
+      border-radius:10px;
+      padding:15px;
+    }
+
+    .discipline-title {
+      font-size:1.4rem;
+      font-weight:bold;
+      margin-bottom:10px;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+    }
+
+    th, td {
+      border:2px solid #111;
+      padding:10px;
+    }
+
+    th { background:#eee; }
+
+    .team { text-align:left; font-weight:bold; }
+    .place { text-align:center; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Párový turnaj 2026</h1>
+  <div class="navbar">
+    <a href="index.html">Domů</a>
+    <a href="disciplines.html">Disciplíny</a>
+    <a href="turnaj.html">Nastavení</a>
+    <a href="spravce.html">Správce</a>
+  </div>
+</div>
+
+<div class="content">
+  <div class="section">
+    <h2>Disciplíny</h2>
+
+    <!-- 🔥 Navigace -->
+    <div id="disciplineNav" class="discipline-nav"></div>
+
+    <!-- obsah -->
+    <div id="disciplinesContent"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "parovyTurnajData";
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return {teams:[], disciplines:[], disciplineResults:{}};
+  const data = JSON.parse(raw);
+
+  return {
+    teams: data.teams || [],
+    disciplines: data.disciplines || [],
+    disciplineResults: data.disciplineResults || {}
+  };
+}
+
+function render() {
+  const {teams, disciplines, disciplineResults} = loadData();
+  const container = document.getElementById("disciplinesContent");
+  const nav = document.getElementById("disciplineNav");
+
+  container.innerHTML = "";
+  nav.innerHTML = "";
+
+  disciplines.forEach(discipline => {
+
+    // 🔹 NAV BUTTON
+    const btn = document.createElement("button");
+    btn.textContent = discipline;
+    btn.onclick = () => {
+      document.getElementById("disc-" + discipline).scrollIntoView({
+        behavior: "smooth"
+      });
+    };
+    nav.appendChild(btn);
+
+    // 🔹 CARD
+    const card = document.createElement("div");
+    card.className = "discipline-card";
+    card.id = "disc-" + discipline;
+
+    const title = document.createElement("div");
+    title.className = "discipline-title";
+    title.textContent = discipline;
+
+    const table = document.createElement("table");
+
+    let html = "<tr><th>Tým</th><th>Umístění</th></tr>";
+
+    teams.forEach(team => {
+      const place = disciplineResults[discipline]?.[team] || "-";
+      html += `<tr>
+        <td class="team">${team}</td>
+        <td class="place">${place !== "-" ? place + "." : "-"}</td>
+      </tr>`;
+    });
+
+    table.innerHTML = html;
+
+    card.appendChild(title);
+    card.appendChild(table);
+    container.appendChild(card);
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>

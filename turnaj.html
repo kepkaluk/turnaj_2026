@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Párový turnaj 2026 - Nastavení</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #111; }
+    .header { text-align: center; background: #eaeaea; padding-top: 20px; }
+    .header h1 { margin: 0 0 20px 0; font-size: 2.6rem; }
+    .navbar { background: #333; padding: 15px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+    .navbar a { color: white; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+    .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    input { padding: 10px; flex: 1; min-width: 220px; font-size: 16px; }
+    button { padding: 10px 14px; cursor: pointer; font-size: 16px; }
+    ul { list-style: none; padding: 0; margin: 15px 0 0 0; }
+    li { padding: 10px 12px; margin-top: 8px; background: #eee; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .bottom-button { text-align: center; margin-top: 20px; }
+    .note { color: #666; margin-top: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Párový turnaj 2026</h1>
+    <div class="navbar">
+      <a href="index.html">Domů</a>
+      <a href="disciplines.html">Disciplíny</a>
+      <a href="turnaj.html">Nastavení</a>
+      <a href="spravce.html">Správce</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+      <h2>Týmy</h2>
+      <div class="input-row">
+        <input type="text" id="teamInput" placeholder="Název týmu">
+        <button onclick="addTeam()">Přidat</button>
+      </div>
+      <div class="note">Týmy se automaticky uloží a zobrazí na stránce Domů.</div>
+      <ul id="teamList"></ul>
+    </div>
+
+    <div class="section">
+      <h2>Disciplíny</h2>
+      <div class="input-row">
+        <input type="text" id="disciplineInput" placeholder="Název disciplíny">
+        <button onclick="addDiscipline()">Přidat</button>
+      </div>
+      <div class="note">Disciplíny se automaticky uloží a zobrazí na stránce Domů i ve Správci.</div>
+      <ul id="disciplineList"></ul>
+    </div>
+
+    <div class="bottom-button">
+      <button onclick="goToHome()">Pokračovat na výsledky</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "parovyTurnajData";
+    let teams = [];
+    let disciplines = [];
+    let disciplineSchedule = {};
+    let disciplineResults = {};
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ teams, disciplines, disciplineSchedule, disciplineResults }));
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+
+        const parsed = JSON.parse(raw);
+        teams = Array.isArray(parsed.teams) ? parsed.teams : [];
+        disciplines = Array.isArray(parsed.disciplines) ? parsed.disciplines : [];
+        disciplineSchedule = parsed.disciplineSchedule && typeof parsed.disciplineSchedule === "object" ? parsed.disciplineSchedule : (parsed.disciplineDates && typeof parsed.disciplineDates === "object" ? Object.fromEntries(Object.entries(parsed.disciplineDates).map(([key, value]) => [key, { date: value, time: "", place: "" }])) : {});
+        disciplineResults = parsed.disciplineResults && typeof parsed.disciplineResults === "object" ? parsed.disciplineResults : {};
+      } catch (error) {
+        console.error("Nepodařilo se načíst data:", error);
+      }
+    }
+
+    function addTeam() {
+      const input = document.getElementById("teamInput");
+      const name = input.value.trim();
+      if (name === "" || teams.includes(name)) return;
+      teams.push(name);
+      input.value = "";
+      saveData();
+      renderTeams();
+    }
+
+    function removeTeam(index) {
+      const removed = teams[index];
+      teams.splice(index, 1);
+      Object.keys(disciplineResults).forEach((discipline) => {
+        if (disciplineResults[discipline] && removed in disciplineResults[discipline]) {
+          delete disciplineResults[discipline][removed];
+        }
+      });
+      saveData();
+      renderTeams();
+    }
+
+    function renderTeams() {
+      const list = document.getElementById("teamList");
+      list.innerHTML = "";
+      teams.forEach((team, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${team} <button onclick="removeTeam(${index})">❌</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function addDiscipline() {
+      const input = document.getElementById("disciplineInput");
+      const name = input.value.trim();
+      if (name === "" || disciplines.includes(name)) return;
+      disciplines.push(name);
+      input.value = "";
+      saveData();
+      renderDisciplines();
+    }
+
+    function removeDiscipline(index) {
+      const removed = disciplines[index];
+      disciplines.splice(index, 1);
+      if (removed && disciplineSchedule[removed]) delete disciplineSchedule[removed];
+      if (removed && disciplineResults[removed]) delete disciplineResults[removed];
+      saveData();
+      renderDisciplines();
+    }
+
+    function renderDisciplines() {
+      const list = document.getElementById("disciplineList");
+      list.innerHTML = "";
+      disciplines.forEach((discipline, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${discipline} <button onclick="removeDiscipline(${index})">❌</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+
+    loadData();
+    renderTeams();
+    renderDisciplines();
+  </script>
+</body>
+</html>
