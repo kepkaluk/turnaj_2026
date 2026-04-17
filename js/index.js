@@ -25,27 +25,67 @@ function calculatePoints(teams, disciplineResults) {
 
   return teams
     .map(team => ({ team, points: totals[team] }))
-    .sort((a, b) => b.points - a.points);
+    .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
+}
+
+function createRankingTable(rows) {
+  const table = document.createElement("table");
+  table.className = "results-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Pořadí</th>
+        <th>Tým</th>
+        <th>Body</th>
+      </tr>
+    </thead>
+  `;
+
+  const tbody = document.createElement("tbody");
+
+  rows.forEach((row, index) => {
+    const tr = document.createElement("tr");
+
+    if (index === 0) tr.className = "rank-gold";
+    else if (index === 1) tr.className = "rank-silver";
+    else if (index === 2) tr.className = "rank-bronze";
+
+    tr.innerHTML = `
+      <td class="place-cell">${index + 1}.</td>
+      <td class="team-name">${row.team}</td>
+      <td class="points-cell">${row.points}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  return table;
 }
 
 function renderHome(data) {
   const resultsContent = document.getElementById("resultsContent");
   const upcomingContent = document.getElementById("upcomingContent");
+  const rankingTable = document.getElementById("rankingTable");
 
   const { teams, disciplines, disciplineSchedule, disciplineResults } = data;
 
   resultsContent.innerHTML = "";
   upcomingContent.innerHTML = "";
+  rankingTable.innerHTML = "";
 
-  // TABULKA
   if (teams.length === 0) {
     resultsContent.innerHTML = "Nejsou žádné týmy.";
   } else {
+    const sorted = calculatePoints(teams, disciplineResults);
+
+    rankingTable.appendChild(createRankingTable(sorted));
+
     const table = document.createElement("table");
     table.className = "results-table";
     table.innerHTML = "<tr><th>Tým</th><th>Body</th></tr>";
 
-    calculatePoints(teams, disciplineResults).forEach(row => {
+    sorted.forEach(row => {
       const tr = document.createElement("tr");
       tr.innerHTML = `<td>${row.team}</td><td>${row.points}</td>`;
       table.appendChild(tr);
@@ -54,7 +94,6 @@ function renderHome(data) {
     resultsContent.appendChild(table);
   }
 
-  // NADCHÁZEJÍCÍ
   const upcoming = disciplines
     .map(d => ({
       name: d,

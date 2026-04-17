@@ -26,6 +26,36 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
 .team-name { text-align: left; font-weight: bold; }
 .points-cell, .place-cell { text-align: center; }
 
+#rankingTable {
+  margin-bottom: 20px;
+}
+
+#rankingTable table {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+#rankingTable th,
+#rankingTable td {
+  padding: 10px 8px;
+  font-size: 17px;
+}
+
+.rank-gold td {
+  background: #fff3bf;
+  font-weight: bold;
+}
+
+.rank-silver td {
+  background: #ececec;
+  font-weight: bold;
+}
+
+.rank-bronze td {
+  background: #f3d2b8;
+  font-weight: bold;
+}
+
 .upcoming-list { list-style: none; padding: 0; margin: 0; }
 
 .upcoming-item {
@@ -61,7 +91,7 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; color: #1
 }
 
 .upcoming-date {
-  margin-left: auto; /* 🔥 TOHLE POSUNE DATUM ÚPLNĚ DOPRAVA */
+  margin-left: auto;
   font-weight: bold;
   font-size: 18px;
   white-space: nowrap;
@@ -90,10 +120,34 @@ button { padding: 10px 16px; cursor: pointer; font-size: 16px; margin-right: 10p
 .danger-button { background: #b91c1c; color: white; border: none; }
 .secondary-button { background: #e5e7eb; border: 1px solid #cfcfcf; }
 
+.rules-content {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.rules-content h3 {
+  margin-top: 20px;
+}
+
+.rules-content ul {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.rules-content li {
+  margin-bottom: 6px;
+}
+
 @media (max-width: 700px) {
   .header h1 { font-size: 2rem; }
   .results-title, .sub-title { font-size: 1.5rem; }
   .results-table th, .results-table td, .upcoming-item { font-size: 17px; padding: 10px 8px; }
+
+  #rankingTable th,
+  #rankingTable td {
+    font-size: 15px;
+    padding: 8px 6px;
+  }
 
   .upcoming-top {
     flex-direction: column;
@@ -102,23 +156,5 @@ button { padding: 10px 16px; cursor: pointer; font-size: 16px; margin-right: 10p
 
   .upcoming-date {
     margin-left: 0;
-  }
-
-  .rules-content {
-    font-size: 18px;
-    line-height: 1.6;
-  }
-  
-  .rules-content h3 {
-    margin-top: 20px;
-  }
-  
-  .rules-content ul {
-    margin-top: 8px;
-    padding-left: 20px;
-  }
-  
-  .rules-content li {
-    margin-bottom: 6px;
   }
 }
