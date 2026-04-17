@@ -6,6 +6,12 @@ import {
   set,
   onValue
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXBI6mXhwC5GhrBeUR3eq6-yYgbDoVOXc",
@@ -20,6 +26,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 const rootRef = ref(db, "turnaj");
 
 function createEmptyData() {
@@ -64,4 +71,16 @@ export function subscribeToData(callback) {
     }
     callback(normalize(snapshot.val()));
   });
+}
+
+export async function login(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function logout() {
+  return signOut(auth);
+}
+
+export function watchAuth(callback) {
+  return onAuthStateChanged(auth, callback);
 }
