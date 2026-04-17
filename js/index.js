@@ -89,12 +89,14 @@ function renderHome(data) {
     const li = document.createElement("li");
     li.className = "upcoming-item";
     li.innerHTML = `
-      <div class="upcoming-top">
+    <div class="upcoming-top">
+      <div class="upcoming-left">
         <span class="upcoming-name">${item.name}</span>
-        <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
+        <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
       </div>
-      <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
-    `;
+      <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
+    </div>
+  `;
     list.appendChild(li);
   });
 
