@@ -3,32 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Párový turnaj 2026 - Domů</title>
+  <title>Párový turnaj 2026</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="header">
-    <h1>Párový turnaj 2026</h1>
-    <div class="navbar">
-      <a href="index.html">Domů</a>
-      <a href="disciplines.html">Výsledky</a>
-      <a href="pravidla.html">Pravidla</a>
-      <a href="administrace.html">Administrace</a>
-    </div>
+
+<div class="header">
+  <h1>Párový turnaj 2026</h1>
+  <div class="navbar">
+    <a href="index.html">Domů</a>
+    <a href="disciplines.html">Výsledky</a>
+    <a href="pravidla.html">Pravidla</a>
+    <a href="administrace.html">Administrace</a>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <div class="results-title">Celkové pořadí v turnaji</div>
+    <div id="rankingContent"></div>
+    <div id="loserInfo" class="loser-text"></div>
   </div>
 
-  <div class="content">
-    <div class="section">
-      <div class="results-title">Celkové pořadí v turnaji</div>
-      <div id="rankingContent"></div>
-    </div>
-
-    <div class="section">
-      <div class="sub-title">Nadcházející disciplíny</div>
-      <div id="upcomingContent"></div>
-    </div>
+  <div class="section">
+    <div class="sub-title">Nadcházející disciplíny</div>
+    <div id="upcomingContent"></div>
   </div>
 
-  <script type="module" src="js/index.js"></script>
+</div>
+
+<script type="module" src="js/index.js"></script>
 </body>
 </html>

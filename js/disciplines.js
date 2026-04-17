@@ -1,161 +1,93 @@
 import { subscribeToData } from "./firebase.js";
 
-function ordinal(place) {
-  const n = Number(place);
-  if (!n) return "-";
-  return `${n}.`;
-}
-
-function calculatePoints(teams, disciplineResults) {
+function calculatePoints(teams, results) {
   const totals = {};
-  teams.forEach(team => totals[team] = 0);
+  teams.forEach(t => totals[t] = 0);
 
-  Object.values(disciplineResults).forEach(resultMap => {
-    if (!resultMap) return;
-
-    Object.entries(resultMap).forEach(([team, place]) => {
+  Object.values(results).forEach(map => {
+    if (!map) return;
+    Object.entries(map).forEach(([team, place]) => {
       const n = Number(place);
-      if (!(team in totals)) return;
-
       if (n === 1) totals[team] += 2;
       else if (n === 2) totals[team] += 1;
     });
   });
 
-  return teams
-    .map(team => ({ team, points: totals[team] }))
-    .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
+  return teams.map(t => ({ team: t, points: totals[t] }))
+    .sort((a,b)=>b.points-a.points);
 }
 
-function createPointsTable(rows) {
+function createPointsTable(rows){
   const table = document.createElement("table");
-  table.className = "results-table";
+  table.className="results-table";
 
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Tým</th>
-        <th>Body</th>
-      </tr>
-    </thead>
-  `;
+  table.innerHTML=`<thead><tr><th>Tým</th><th>Body</th></tr></thead>`;
+  const tb=document.createElement("tbody");
 
-  const tbody = document.createElement("tbody");
-
-  rows.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="team-name">${row.team}</td>
-      <td class="points-cell">${row.points}</td>
-    `;
-    tbody.appendChild(tr);
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.team}</td><td>${r.points}</td>`;
+    tb.appendChild(tr);
   });
 
-  table.appendChild(tbody);
+  table.appendChild(tb);
   return table;
 }
 
-function createResultTable(teams, resultMap) {
-  const table = document.createElement("table");
-  table.className = "results-table";
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Tým</th>
-        <th>Umístění</th>
-      </tr>
-    </thead>
-  `;
+function createResultTable(teams, map){
+  const table=document.createElement("table");
+  table.className="results-table";
 
-  const tbody = document.createElement("tbody");
+  table.innerHTML=`<thead><tr><th>Tým</th><th>Umístění</th></tr></thead>`;
+  const tb=document.createElement("tbody");
 
-  teams.forEach((team) => {
-    const place = Number(resultMap?.[team]);
-    const row = document.createElement("tr");
+  teams.forEach(t=>{
+    const place=Number(map?.[t]);
+    const tr=document.createElement("tr");
 
-    if (place === 1) row.className = "discipline-gold";
-    else if (place === 2) row.className = "discipline-silver";
-    else if (place === 3) row.className = "discipline-bronze";
+    if(place===1) tr.className="discipline-gold";
+    else if(place===2) tr.className="discipline-silver";
+    else if(place===3) tr.className="discipline-bronze";
 
-    row.innerHTML = `
-      <td class="team-name">${team}</td>
-      <td class="place-cell">${place ? place + "." : "-"}</td>
-    `;
-
-    tbody.appendChild(row);
+    tr.innerHTML=`<td>${t}</td><td>${place?place+".":"-"}</td>`;
+    tb.appendChild(tr);
   });
 
-  table.appendChild(tbody);
+  table.appendChild(tb);
   return table;
 }
 
-function createDisciplineAccordion(teams, discipline, resultMap, index) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "discipline-card";
+function render(data){
+  const pointsDiv=document.getElementById("pointsContent");
+  const cont=document.getElementById("disciplinesContent");
 
-  const contentId = `discipline-content-${index}`;
+  pointsDiv.innerHTML="";
+  cont.innerHTML="";
 
-  wrapper.innerHTML = `
-    <button class="discipline-toggle" type="button" aria-expanded="false" aria-controls="${contentId}">
-      <span class="discipline-toggle-arrow">▾</span>
-      <span class="discipline-title">${discipline}</span>
-    </button>
-    <div class="discipline-hidden-content hidden" id="${contentId}"></div>
-  `;
+  const sorted=calculatePoints(data.teams,data.disciplineResults);
+  pointsDiv.appendChild(createPointsTable(sorted));
 
-  const toggle = wrapper.querySelector(".discipline-toggle");
-  const arrow = wrapper.querySelector(".discipline-toggle-arrow");
-  const content = wrapper.querySelector(".discipline-hidden-content");
+  data.disciplines.forEach((d,i)=>{
+    const wrap=document.createElement("div");
+    wrap.className="discipline-card";
 
-  content.appendChild(createResultTable(teams, resultMap));
+    const content=document.createElement("div");
+    content.className="hidden";
 
-  toggle.addEventListener("click", () => {
-    const isHidden = content.classList.contains("hidden");
+    const btn=document.createElement("button");
+    btn.className="discipline-toggle";
+    btn.innerHTML=`▾ <span class="discipline-title">${d}</span>`;
 
-    if (isHidden) {
-      content.classList.remove("hidden");
-      toggle.setAttribute("aria-expanded", "true");
-      arrow.classList.add("open");
-    } else {
-      content.classList.add("hidden");
-      toggle.setAttribute("aria-expanded", "false");
-      arrow.classList.remove("open");
-    }
-  });
+    btn.onclick=()=>{
+      content.classList.toggle("hidden");
+    };
 
-  return wrapper;
-}
+    content.appendChild(createResultTable(data.teams,data.disciplineResults[d]||{}));
 
-function renderDisciplinesPage(data) {
-  const pointsContent = document.getElementById("pointsContent");
-  const container = document.getElementById("disciplinesContent");
-
-  const { teams, disciplines, disciplineResults } = data;
-
-  pointsContent.innerHTML = "";
-  container.innerHTML = "";
-
-  if (teams.length === 0) {
-    pointsContent.innerHTML = "Zatím nejsou přidané žádné týmy.";
-  } else {
-    const sorted = calculatePoints(teams, disciplineResults);
-    pointsContent.appendChild(createPointsTable(sorted));
-  }
-
-  if (disciplines.length === 0) {
-    container.innerHTML = "Zatím nejsou přidané žádné disciplíny.";
-    return;
-  }
-
-  disciplines.forEach((discipline, index) => {
-    const accordion = createDisciplineAccordion(
-      teams,
-      discipline,
-      disciplineResults[discipline] || {},
-      index
-    );
-    container.appendChild(accordion);
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+    cont.appendChild(wrap);
   });
 }
 
-subscribeToData(renderDisciplinesPage);
+subscribeToData(render);
