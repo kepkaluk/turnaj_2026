@@ -103,4 +103,22 @@ button { padding: 10px 16px; cursor: pointer; font-size: 16px; margin-right: 10p
   .upcoming-date {
     margin-left: 0;
   }
+
+  .rules-content {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  
+  .rules-content h3 {
+    margin-top: 20px;
+  }
+  
+  .rules-content ul {
+    margin-top: 8px;
+    padding-left: 20px;
+  }
+  
+  .rules-content li {
+    margin-bottom: 6px;
+  }
 }
