@@ -78,6 +78,7 @@ function createUpcomingCards(items) {
         <span class="upcoming-name">${item.name}</span>
         <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
       </div>
+      <div></div>
       <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
     `;
     grid.appendChild(card);
