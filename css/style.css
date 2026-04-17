@@ -494,6 +494,22 @@ button:hover {
   }
 }
 
+/* Všechny tabulky ve výsledcích – text vždy černý */
+.results-table td,
+.results-table th {
+  color: #000 !important;
+}
+
+/* Pro jistotu i zvýrazněné řádky */
+.discipline-gold td,
+.discipline-silver td,
+.discipline-bronze td,
+.rank-gold td,
+.rank-silver td,
+.rank-bronze td {
+  color: #000 !important;
+}
+
 @media (max-width: 700px) {
   .header h1 { font-size: 2rem; }
 
