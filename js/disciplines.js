@@ -58,6 +58,7 @@ function createPointsTable(rows) {
 function createResultTable(teams, resultMap) {
   const table = document.createElement("table");
   table.className = "results-table";
+
   table.innerHTML = `
     <thead>
       <tr>
@@ -66,6 +67,29 @@ function createResultTable(teams, resultMap) {
       </tr>
     </thead>
   `;
+
+  const tbody = document.createElement("tbody");
+
+  teams.forEach((team) => {
+    const place = Number(resultMap?.[team]);
+    const row = document.createElement("tr");
+
+    // 🔥 zvýraznění podle pořadí
+    if (place === 1) row.className = "discipline-gold";
+    else if (place === 2) row.className = "discipline-silver";
+    else if (place === 3) row.className = "discipline-bronze";
+
+    row.innerHTML = `
+      <td class="team-name">${team}</td>
+      <td class="place-cell">${place ? place + "." : "-"}</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(tbody);
+  return table;
+}
 
   const tbody = document.createElement("tbody");
 

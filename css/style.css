@@ -176,6 +176,33 @@ button { padding: 10px 16px; cursor: pointer; font-size: 16px; margin-right: 10p
   margin-bottom: 6px;
 }
 
+/* Tabulka disciplín – černý styl */
+.discipline-card .results-table th {
+  background: #111;
+  color: white;
+}
+
+.discipline-card .results-table td {
+  background: white;
+  color: #111;
+}
+
+/* Zvýraznění umístění v disciplínách */
+.discipline-gold td {
+  background: #ffe58a;
+  font-weight: bold;
+}
+
+.discipline-silver td {
+  background: #e6e6e6;
+  font-weight: bold;
+}
+
+.discipline-bronze td {
+  background: #e6b894;
+  font-weight: bold;
+}
+
 @media (max-width: 700px) {
   .header h1 { font-size: 2rem; }
   .results-title, .sub-title { font-size: 1.5rem; }
