@@ -751,9 +751,22 @@
       try {
         await login(email, password);
       } catch (error) {
-        console.error(error);
-        loginMessage.textContent = "Přihlášení se nepodařilo.";
-      }
+  console.error(error);
+
+  if (error.code === "auth/invalid-credential") {
+    loginMessage.textContent = "Špatný email nebo heslo.";
+  } else if (error.code === "auth/unauthorized-domain") {
+    loginMessage.textContent = "Tato doména není povolená ve Firebase.";
+  } else if (error.code === "auth/user-not-found") {
+    loginMessage.textContent = "Uživatel neexistuje.";
+  } else if (error.code === "auth/wrong-password") {
+    loginMessage.textContent = "Špatné heslo.";
+  } else if (error.code === "auth/network-request-failed") {
+    loginMessage.textContent = "Chyba připojení k síti.";
+  } else {
+    loginMessage.textContent = `Chyba: ${error.code}`;
+  }
+}
     }
 
     async function logoutAdmin() {
