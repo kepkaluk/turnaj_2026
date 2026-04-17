@@ -19,86 +19,119 @@
 
   <div class="container">
 
-    <div id="loginBox" class="section">
+    <div id="loginBox" class="section admin-login-card">
       <h2>Přihlášení administrátora</h2>
 
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="admin@email.cz" autocomplete="username">
+      <div class="admin-form">
+        <div class="admin-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="admin@email.cz" autocomplete="username">
+        </div>
 
-      <label for="password">Heslo</label>
-      <input type="password" id="password" placeholder="Heslo" autocomplete="current-password">
+        <div class="admin-field">
+          <label for="password">Heslo</label>
+          <input type="password" id="password" placeholder="Heslo" autocomplete="current-password">
+        </div>
 
-      <button id="loginBtn">Přihlásit se</button>
+        <div class="admin-actions">
+          <button id="loginBtn">Přihlásit se</button>
+        </div>
+      </div>
+
       <div id="loginMessage" class="message"></div>
     </div>
 
     <div id="adminContent" class="hidden">
 
-      <div class="section">
+      <div class="section admin-hero-card">
         <div class="top-actions">
-          <h2>Administrace turnaje</h2>
+          <div>
+            <h2>Administrace turnaje</h2>
+            <div class="admin-subtext">Zde můžeš spravovat týmy, disciplíny, termíny i výsledky.</div>
+          </div>
           <button id="logoutBtn" class="secondary-button">Odhlásit se</button>
         </div>
       </div>
 
-      <div class="section">
-        <h3>Týmy</h3>
-        <div class="input-row">
-          <input type="text" id="teamInput" placeholder="Název týmu">
-          <button id="addTeamBtn">Přidat</button>
+      <div class="admin-grid-2">
+        <div class="section admin-card">
+          <h3>Týmy</h3>
+          <div class="admin-form-inline">
+            <input type="text" id="teamInput" placeholder="Název týmu">
+            <button id="addTeamBtn">Přidat</button>
+          </div>
+          <ul id="teamList" class="admin-list"></ul>
         </div>
-        <ul id="teamList"></ul>
+
+        <div class="section admin-card">
+          <h3>Disciplíny</h3>
+          <div class="admin-form-inline">
+            <input type="text" id="disciplineInput" placeholder="Název disciplíny">
+            <button id="addDisciplineBtn">Přidat</button>
+          </div>
+          <ul id="disciplineList" class="admin-list"></ul>
+        </div>
       </div>
 
-      <div class="section">
-        <h3>Disciplíny</h3>
-        <div class="input-row">
-          <input type="text" id="disciplineInput" placeholder="Název disciplíny">
-          <button id="addDisciplineBtn">Přidat</button>
-        </div>
-        <ul id="disciplineList"></ul>
-      </div>
-
-      <div class="section">
+      <div class="section admin-card">
         <h3>Termín disciplíny</h3>
-        <div class="hint">Vyber disciplínu z těch, které ještě nemají vyplněný termín, a přiřaď jí datum, čas a místo konání.</div>
+        <div class="admin-subtext">
+          Vyber disciplínu z těch, které ještě nemají vyplněný termín, a přiřaď jí datum, čas a místo konání.
+        </div>
 
-        <label for="disciplineSelect">Disciplína</label>
-        <select id="disciplineSelect"></select>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label for="disciplineSelect">Disciplína</label>
+            <select id="disciplineSelect"></select>
+          </div>
 
-        <div class="grid">
-          <div>
+          <div class="admin-field">
             <label for="disciplineDate">Datum konání</label>
             <input type="date" id="disciplineDate">
           </div>
-          <div>
+
+          <div class="admin-field">
             <label for="disciplineTime">Čas konání</label>
             <input type="time" id="disciplineTime">
           </div>
+
+          <div class="admin-field admin-field-full">
+            <label for="disciplinePlace">Místo konání</label>
+            <input type="text" id="disciplinePlace" placeholder="Např. Sportovní areál Rudná">
+          </div>
         </div>
 
-        <label for="disciplinePlace">Místo konání</label>
-        <input type="text" id="disciplinePlace" placeholder="Např. Sportovní areál Rudná">
+        <div class="admin-actions">
+          <button id="saveScheduleBtn">Uložit termín</button>
+        </div>
 
-        <button id="saveScheduleBtn">Uložit termín</button>
         <div id="message" class="message"></div>
       </div>
 
-      <div class="section">
+      <div class="section admin-card">
         <h3>Zadané termíny</h3>
         <div id="datesContent" class="hint"></div>
       </div>
 
-      <div class="section">
+      <div class="section admin-card">
         <h3>Výsledky disciplíny</h3>
-        <div class="hint">Vyber disciplínu a u každého týmu vyplň umístění. Za 1. místo se přidají 2 body, za 2. místo 1 bod.</div>
+        <div class="admin-subtext">
+          Vyber disciplínu a u každého týmu vyplň umístění. Za 1. místo se přidají 2 body, za 2. místo 1 bod.
+        </div>
 
-        <label for="resultDisciplineSelect">Disciplína</label>
-        <select id="resultDisciplineSelect"></select>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label for="resultDisciplineSelect">Disciplína</label>
+            <select id="resultDisciplineSelect"></select>
+          </div>
+        </div>
 
-        <div id="resultsForm"></div>
+        <div id="resultsForm" class="results-form-box"></div>
 
-        <button id="saveResultsBtn">Uložit výsledky</button>
+        <div class="admin-actions">
+          <button id="saveResultsBtn">Uložit výsledky</button>
+        </div>
+
         <div id="resultsMessage" class="message"></div>
       </div>
 
