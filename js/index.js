@@ -9,7 +9,7 @@ function calculatePoints(teams, results) {
   const totals = {};
   teams.forEach(t => totals[t] = 0);
 
-  Object.values(results).forEach(map => {
+  Object.values(results || {}).forEach(map => {
     if (!map) return;
     Object.entries(map).forEach(([team, place]) => {
       const n = Number(place);
@@ -20,7 +20,7 @@ function calculatePoints(teams, results) {
 
   return teams
     .map(t => ({ team: t, points: totals[t] }))
-    .sort((a,b)=>b.points-a.points);
+    .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
 }
 
 function createRankingTable(rows) {
@@ -30,14 +30,14 @@ function createRankingTable(rows) {
   table.innerHTML = `<thead><tr><th>Pořadí</th><th>Tým</th></tr></thead>`;
   const tbody = document.createElement("tbody");
 
-  rows.forEach((r,i)=>{
+  rows.forEach((r, i) => {
     const tr = document.createElement("tr");
 
-    if(i===0) tr.className="rank-gold";
-    else if(i===1) tr.className="rank-silver";
-    else if(i===2) tr.className="rank-bronze";
+    if (i === 0) tr.className = "rank-gold";
+    else if (i === 1) tr.className = "rank-silver";
+    else if (i === 2) tr.className = "rank-bronze";
 
-    tr.innerHTML = `<td>${i+1}.</td><td>${r.team}</td>`;
+    tr.innerHTML = `<td class="place-cell">${i + 1}.</td><td class="team-name">${r.team}</td>`;
     tbody.appendChild(tr);
   });
 
@@ -45,31 +45,58 @@ function createRankingTable(rows) {
   return table;
 }
 
-function renderHome(data){
+function getCompletedDisciplinesCount(disciplineResults) {
+  return Object.values(disciplineResults || {}).filter(resultMap => {
+    if (!resultMap) return false;
+    return Object.keys(resultMap).length > 0;
+  }).length;
+}
+
+function createProgressBar(completed, total) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "progress-wrapper";
+
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  wrapper.innerHTML = `
+    <div class="progress-text">${percent} %</div>
+    <div class="progress-bar-box">
+      <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+    </div>
+    <div class="progress-subtext">Hotovo ${completed} z ${total} disciplín</div>
+  `;
+
+  return wrapper;
+}
+
+function renderHome(data) {
   const ranking = document.getElementById("rankingContent");
   const upcoming = document.getElementById("upcomingContent");
   const loser = document.getElementById("loserInfo");
+  const progressSection = document.getElementById("progressSection");
 
-  ranking.innerHTML="";
-  upcoming.innerHTML="";
-  loser.innerHTML="";
+  ranking.innerHTML = "";
+  upcoming.innerHTML = "";
+  loser.innerHTML = "";
+  progressSection.innerHTML = "";
 
-  const sorted = calculatePoints(data.teams, data.disciplineResults);
+  const sorted = calculatePoints(data.teams || [], data.disciplineResults || {});
 
-  ranking.appendChild(createRankingTable(sorted));
-
-  if(sorted.length){
-    loser.textContent = `Aktuálně platí večeři: ${sorted[sorted.length-1].team}`;
+  if (sorted.length) {
+    ranking.appendChild(createRankingTable(sorted));
+    loser.textContent = `Aktuálně platí večeři: ${sorted[sorted.length - 1].team}`;
+  } else {
+    ranking.innerHTML = "Nejsou žádné týmy.";
   }
 
   const list = document.createElement("ul");
-  list.className="upcoming-list";
+  list.className = "upcoming-list";
 
-  Object.entries(data.disciplineSchedule || {}).forEach(([name,s])=>{
-    if(!s.date) return;
+  Object.entries(data.disciplineSchedule || {}).forEach(([name, s]) => {
+    if (!s.date) return;
 
     const li = document.createElement("li");
-    li.className="upcoming-item";
+    li.className = "upcoming-item";
 
     li.innerHTML = `
       <div class="upcoming-top">
@@ -86,7 +113,15 @@ function renderHome(data){
     list.appendChild(li);
   });
 
-  upcoming.appendChild(list);
+  if (list.children.length === 0) {
+    upcoming.innerHTML = "Žádné nadcházející disciplíny.";
+  } else {
+    upcoming.appendChild(list);
+  }
+
+  const completedCount = getCompletedDisciplinesCount(data.disciplineResults || {});
+  const totalCount = (data.disciplines || []).length;
+  progressSection.appendChild(createProgressBar(completedCount, totalCount));
 }
 
 subscribeToData(renderHome);
