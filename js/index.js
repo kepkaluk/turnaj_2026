@@ -100,7 +100,7 @@ function createDisciplineStatusTable(disciplines, disciplineResults) {
     tr.innerHTML = `
       <td class="team-name">${discipline}</td>
       <td class="place-cell ${finished ? "status-done" : "status-planned"}">
-        ${finished ? "Proběhla" : "Plánovaná"}
+        ${finished ? "Již proběhla" : "Ještě neproběhla"}
       </td>
     `;
     tbody.appendChild(tr);
