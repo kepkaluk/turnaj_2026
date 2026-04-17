@@ -12,10 +12,12 @@ function calculatePoints(teams, disciplineResults) {
   teams.forEach(team => totals[team] = 0);
 
   Object.values(disciplineResults).forEach(resultMap => {
-    if (!resultMap || typeof resultMap !== "object") return;
+    if (!resultMap) return;
+
     Object.entries(resultMap).forEach(([team, place]) => {
       const n = Number(place);
       if (!(team in totals)) return;
+
       if (n === 1) totals[team] += 2;
       else if (n === 2) totals[team] += 1;
     });
@@ -23,80 +25,70 @@ function calculatePoints(teams, disciplineResults) {
 
   return teams
     .map(team => ({ team, points: totals[team] }))
-    .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
-}
-
-function createTable(rows) {
-  const table = document.createElement("table");
-  table.className = "results-table";
-  table.innerHTML = "<thead><tr><th>Tým</th><th>Body</th></tr></thead>";
-  const tbody = document.createElement("tbody");
-
-  rows.forEach((rowData) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td class="team-name">${rowData.team}</td><td class="points-cell">${rowData.points}</td>`;
-    tbody.appendChild(row);
-  });
-
-  table.appendChild(tbody);
-  return table;
+    .sort((a, b) => b.points - a.points);
 }
 
 function renderHome(data) {
   const resultsContent = document.getElementById("resultsContent");
   const upcomingContent = document.getElementById("upcomingContent");
+
   const { teams, disciplines, disciplineSchedule, disciplineResults } = data;
 
   resultsContent.innerHTML = "";
   upcomingContent.innerHTML = "";
 
+  // TABULKA
   if (teams.length === 0) {
-    resultsContent.innerHTML = `
-      <div class="empty-message">Nejprve přidej týmy v sekci <strong>Administrace</strong>.</div>
-      <div class="hint">Jakmile je vyplníš, zobrazí se tady přehled bodů.</div>
-    `;
+    resultsContent.innerHTML = "Nejsou žádné týmy.";
   } else {
-    resultsContent.appendChild(createTable(calculatePoints(teams, disciplineResults)));
+    const table = document.createElement("table");
+    table.className = "results-table";
+    table.innerHTML = "<tr><th>Tým</th><th>Body</th></tr>";
+
+    calculatePoints(teams, disciplineResults).forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${row.team}</td><td>${row.points}</td>`;
+      table.appendChild(tr);
+    });
+
+    resultsContent.appendChild(table);
   }
 
+  // NADCHÁZEJÍCÍ
   const upcoming = disciplines
-    .map((discipline) => {
-      const schedule = disciplineSchedule[discipline] || {};
-      return {
-        name: discipline,
-        date: schedule.date || "",
-        time: schedule.time || "",
-        place: schedule.place || ""
-      };
-    })
-    .filter(item => item.date)
+    .map(d => ({
+      name: d,
+      ...(disciplineSchedule[d] || {})
+    }))
+    .filter(d => d.date)
     .sort((a, b) =>
-      `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`)
+      `${a.date}T${a.time || ""}`.localeCompare(`${b.date}T${b.time || ""}`)
     );
 
   if (upcoming.length === 0) {
-    upcomingContent.innerHTML = `
-      <div class="empty-message">Zatím nejsou zadané žádné termíny disciplín.</div>
-      <div class="hint">Přidej termíny v sekci <strong>Administrace</strong>.</div>
-    `;
+    upcomingContent.innerHTML = "Žádné nadcházející disciplíny.";
     return;
   }
 
   const list = document.createElement("ul");
   list.className = "upcoming-list";
 
-  upcoming.forEach((item) => {
+  upcoming.forEach(item => {
     const li = document.createElement("li");
     li.className = "upcoming-item";
+
     li.innerHTML = `
-    <div class="upcoming-top">
-      <div class="upcoming-left">
-        <span class="upcoming-name">${item.name}</span>
-        <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
+      <div class="upcoming-top">
+        <div class="upcoming-left">
+          <div class="upcoming-name">${item.name}</div>
+          <div class="upcoming-meta">Místo: ${item.place || "neuvedeno"}</div>
+        </div>
+        <div class="upcoming-date">
+          ${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}
+        </div>
       </div>
-      <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
-    </div>
-  `;
+    `;
+
     list.appendChild(li);
   });
 
