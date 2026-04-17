@@ -62,53 +62,20 @@ function createRankingTable(rows) {
   return table;
 }
 
-function createPointsTable(rows) {
-  const table = document.createElement("table");
-  table.className = "results-table";
-
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Tým</th>
-        <th>Body</th>
-      </tr>
-    </thead>
-  `;
-
-  const tbody = document.createElement("tbody");
-
-  rows.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="team-name">${row.team}</td>
-      <td class="points-cell">${row.points}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
-  return table;
-}
-
 function renderHome(data) {
   const rankingContent = document.getElementById("rankingContent");
-  const resultsContent = document.getElementById("resultsContent");
   const upcomingContent = document.getElementById("upcomingContent");
 
   const { teams, disciplines, disciplineSchedule, disciplineResults } = data;
 
   rankingContent.innerHTML = "";
-  resultsContent.innerHTML = "";
   upcomingContent.innerHTML = "";
 
   if (teams.length === 0) {
     rankingContent.innerHTML = "Nejsou žádné týmy.";
-    resultsContent.innerHTML = "Nejsou žádné týmy.";
   } else {
     const sorted = calculatePoints(teams, disciplineResults);
-
     rankingContent.appendChild(createRankingTable(sorted));
-    resultsContent.appendChild(createPointsTable(sorted));
   }
 
   const upcoming = disciplines
