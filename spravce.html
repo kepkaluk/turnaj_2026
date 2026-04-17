@@ -15,7 +15,6 @@
     label { display: block; margin-bottom: 8px; font-weight: bold; }
     select, input { padding:10px; margin:5px 0 15px 0; width:100%; box-sizing: border-box; font-size: 16px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
     button { padding:10px 16px; cursor:pointer; font-size: 16px; margin-right: 10px; margin-top: 6px; }
     .danger-button { background: #b91c1c; color: white; border: none; }
     .secondary-button { background: #e5e7eb; border: 1px solid #cfcfcf; }
@@ -29,9 +28,10 @@
     .editing-box { margin-top: 14px; padding: 14px; border: 2px dashed #bbb; border-radius: 8px; background: #fafafa; }
     .result-row { display: grid; grid-template-columns: 1fr 140px; gap: 12px; align-items: center; margin-bottom: 10px; }
     .team-label { font-weight: bold; }
+
     @media (max-width: 700px) {
       .saved-list li { flex-direction: column; align-items: flex-start; }
-      .grid, .grid-3, .result-row { grid-template-columns: 1fr; }
+      .grid, .result-row { grid-template-columns: 1fr; }
       .saved-item-actions { flex-direction: row; }
     }
   </style>
@@ -69,7 +69,7 @@
     <label for="disciplinePlace">Místo konání</label>
     <input type="text" id="disciplinePlace" placeholder="Např. Sportovní areál Rudná">
 
-    <button onclick="saveDisciplineSchedule()">Uložit termín</button>
+    <button id="saveScheduleBtn">Uložit termín</button>
     <div id="message" class="message"></div>
   </div>
 
@@ -87,41 +87,22 @@
 
     <div id="resultsForm"></div>
 
-    <button onclick="saveDisciplineResults()">Uložit výsledky</button>
+    <button id="saveResultsBtn">Uložit výsledky</button>
     <div id="resultsMessage" class="message"></div>
   </div>
 </div>
 
-<script>
-  const STORAGE_KEY = "parovyTurnajData";
-  let data = { teams: [], disciplines: [], disciplineSchedule: {}, disciplineResults: {} };
+<script type="module">
+  import { loadData, saveData, subscribeToData } from "./firebase.js";
+
+  let currentData = {
+    teams: [],
+    disciplines: [],
+    disciplineSchedule: {},
+    disciplineResults: {}
+  };
+
   let editingDiscipline = null;
-
-  function loadData() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      data.teams = Array.isArray(parsed.teams) ? parsed.teams : [];
-      data.disciplines = Array.isArray(parsed.disciplines) ? parsed.disciplines : [];
-      if (parsed.disciplineSchedule && typeof parsed.disciplineSchedule === "object") {
-        data.disciplineSchedule = parsed.disciplineSchedule;
-      } else if (parsed.disciplineDates && typeof parsed.disciplineDates === "object") {
-        data.disciplineSchedule = Object.fromEntries(
-          Object.entries(parsed.disciplineDates).map(([key, value]) => [key, { date: value, time: "", place: "" }])
-        );
-      } else {
-        data.disciplineSchedule = {};
-      }
-      data.disciplineResults = parsed.disciplineResults && typeof parsed.disciplineResults === "object" ? parsed.disciplineResults : {};
-    } catch (error) {
-      console.error("Nepodařilo se načíst data:", error);
-    }
-  }
-
-  function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
 
   function formatDate(dateString) {
     if (!dateString) return "";
@@ -130,8 +111,12 @@
     return new Intl.DateTimeFormat("cs-CZ").format(date);
   }
 
+  function escapeId(value) {
+    return value.replace(/[^a-zA-Z0-9_-]/g, "_");
+  }
+
   function getAvailableDisciplines() {
-    return data.disciplines.filter((discipline) => !data.disciplineSchedule[discipline]);
+    return currentData.disciplines.filter((discipline) => !currentData.disciplineSchedule[discipline]);
   }
 
   function renderDisciplineOptions() {
@@ -139,20 +124,14 @@
     const available = getAvailableDisciplines();
     select.innerHTML = "";
 
-    if (data.disciplines.length === 0) {
-      const option = document.createElement("option");
-      option.textContent = "Nejdřív přidej disciplíny v Nastavení";
-      option.value = "";
-      select.appendChild(option);
+    if (currentData.disciplines.length === 0) {
+      select.innerHTML = `<option value="">Nejdřív přidej disciplíny v Nastavení</option>`;
       select.disabled = true;
       return;
     }
 
     if (available.length === 0) {
-      const option = document.createElement("option");
-      option.textContent = "Všechny disciplíny už mají termín";
-      option.value = "";
-      select.appendChild(option);
+      select.innerHTML = `<option value="">Všechny disciplíny už mají termín</option>`;
       select.disabled = true;
       return;
     }
@@ -171,25 +150,22 @@
     const current = select.value;
     select.innerHTML = "";
 
-    if (data.disciplines.length === 0) {
-      const option = document.createElement("option");
-      option.textContent = "Nejdřív přidej disciplíny v Nastavení";
-      option.value = "";
-      select.appendChild(option);
+    if (currentData.disciplines.length === 0) {
+      select.innerHTML = `<option value="">Nejdřív přidej disciplíny v Nastavení</option>`;
       select.disabled = true;
       renderResultsForm();
       return;
     }
 
     select.disabled = false;
-    data.disciplines.forEach((discipline) => {
+    currentData.disciplines.forEach((discipline) => {
       const option = document.createElement("option");
       option.value = discipline;
       option.textContent = discipline;
       select.appendChild(option);
     });
 
-    if (data.disciplines.includes(current)) {
+    if (currentData.disciplines.includes(current)) {
       select.value = current;
     }
 
@@ -202,31 +178,27 @@
     document.getElementById("disciplinePlace").value = "";
   }
 
-  function saveDisciplineSchedule() {
-    const select = document.getElementById("disciplineSelect");
-    const dateInput = document.getElementById("disciplineDate");
-    const timeInput = document.getElementById("disciplineTime");
-    const placeInput = document.getElementById("disciplinePlace");
+  async function saveDisciplineSchedule() {
+    const discipline = document.getElementById("disciplineSelect").value;
+    const date = document.getElementById("disciplineDate").value;
+    const time = document.getElementById("disciplineTime").value;
+    const place = document.getElementById("disciplinePlace").value.trim();
     const message = document.getElementById("message");
-
-    const discipline = select.value;
-    const date = dateInput.value;
-    const time = timeInput.value;
-    const place = placeInput.value.trim();
 
     if (!discipline) {
       message.textContent = "Nejdřív vyber disciplínu.";
       return;
     }
+
     if (!date) {
       message.textContent = "Vyplň datum konání.";
       return;
     }
 
+    const data = await loadData();
     data.disciplineSchedule[discipline] = { date, time, place };
-    saveData();
-    renderDisciplineOptions();
-    renderSavedDates();
+    await saveData(data);
+
     clearAddForm();
     message.textContent = "Termín byl uložen.";
   }
@@ -241,57 +213,51 @@
     renderSavedDates();
   }
 
-  function updateDisciplineSchedule(discipline) {
-    const dateInput = document.getElementById(`edit-date-${escapeId(discipline)}`);
-    const timeInput = document.getElementById(`edit-time-${escapeId(discipline)}`);
-    const placeInput = document.getElementById(`edit-place-${escapeId(discipline)}`);
-
-    const date = dateInput.value;
-    const time = timeInput.value;
-    const place = placeInput.value.trim();
+  async function updateDisciplineSchedule(discipline) {
+    const date = document.getElementById(`edit-date-${escapeId(discipline)}`).value;
+    const time = document.getElementById(`edit-time-${escapeId(discipline)}`).value;
+    const place = document.getElementById(`edit-place-${escapeId(discipline)}`).value.trim();
 
     if (!date) {
       alert("Vyplň datum konání.");
       return;
     }
 
+    const data = await loadData();
     data.disciplineSchedule[discipline] = { date, time, place };
-    saveData();
+    await saveData(data);
     editingDiscipline = null;
-    renderDisciplineOptions();
-    renderSavedDates();
   }
 
-  function removeDisciplineSchedule(discipline) {
+  async function removeDisciplineSchedule(discipline) {
     const confirmed = confirm(`Opravdu chceš odstranit termín disciplíny "${discipline}"?`);
     if (!confirmed) return;
 
+    const data = await loadData();
     delete data.disciplineSchedule[discipline];
-    saveData();
+    await saveData(data);
 
     if (editingDiscipline === discipline) editingDiscipline = null;
-    renderDisciplineOptions();
-    renderSavedDates();
-  }
-
-  function escapeId(value) {
-    return value.replace(/[^a-zA-Z0-9_-]/g, "_");
   }
 
   function renderSavedDates() {
     const container = document.getElementById("datesContent");
-    const items = data.disciplines
+
+    const items = currentData.disciplines
       .map((discipline) => {
-        const schedule = data.disciplineSchedule[discipline] || null;
+        const schedule = currentData.disciplineSchedule[discipline] || null;
         if (!schedule) return null;
-        return { name: discipline, date: schedule.date || "", time: schedule.time || "", place: schedule.place || "" };
+        return {
+          name: discipline,
+          date: schedule.date || "",
+          time: schedule.time || "",
+          place: schedule.place || ""
+        };
       })
       .filter(Boolean)
-      .sort((a, b) => {
-        const aKey = `${a.date}T${a.time || "23:59"}`;
-        const bKey = `${b.date}T${b.time || "23:59"}`;
-        return aKey.localeCompare(bKey);
-      });
+      .sort((a, b) =>
+        `${a.date}T${a.time || "23:59"}`.localeCompare(`${b.date}T${b.time || "23:59"}`)
+      );
 
     if (items.length === 0) {
       container.innerHTML = "Zatím tu není uložený žádný termín disciplíny.";
@@ -305,21 +271,18 @@
       const li = document.createElement("li");
       const escaped = escapeId(item.name);
 
-      let editHtml = "";
-      if (editingDiscipline === item.name) {
-        editHtml = `
-          <div class="editing-box">
-            <label for="edit-date-${escaped}">Datum</label>
-            <input type="date" id="edit-date-${escaped}" value="${item.date}">
-            <label for="edit-time-${escaped}">Čas</label>
-            <input type="time" id="edit-time-${escaped}" value="${item.time}">
-            <label for="edit-place-${escaped}">Místo</label>
-            <input type="text" id="edit-place-${escaped}" value="${item.place.replace(/"/g, "&quot;")}">
-            <button onclick="updateDisciplineSchedule('${item.name.replace(/'/g, "\'")}')">Uložit změny</button>
-            <button class="secondary-button" onclick="cancelEditDiscipline()">Zrušit</button>
-          </div>
-        `;
-      }
+      const editHtml = editingDiscipline === item.name ? `
+        <div class="editing-box">
+          <label for="edit-date-${escaped}">Datum</label>
+          <input type="date" id="edit-date-${escaped}" value="${item.date}">
+          <label for="edit-time-${escaped}">Čas</label>
+          <input type="time" id="edit-time-${escaped}" value="${item.time}">
+          <label for="edit-place-${escaped}">Místo</label>
+          <input type="text" id="edit-place-${escaped}" value="${item.place.replace(/"/g, "&quot;")}">
+          <button class="save-edit-btn" data-name="${item.name}">Uložit změny</button>
+          <button class="secondary-button cancel-edit-btn">Zrušit</button>
+        </div>
+      ` : "";
 
       li.innerHTML = `
         <div>
@@ -332,38 +295,55 @@
           ${editHtml}
         </div>
         <div class="saved-item-actions">
-          <button class="secondary-button" onclick="startEditDiscipline('${item.name.replace(/'/g, "\'")}')">Upravit</button>
-          <button class="danger-button" onclick="removeDisciplineSchedule('${item.name.replace(/'/g, "\'")}')">Odstranit</button>
+          <button class="secondary-button edit-btn" data-name="${item.name}">Upravit</button>
+          <button class="danger-button remove-btn" data-name="${item.name}">Odstranit</button>
         </div>
       `;
+
       list.appendChild(li);
     });
 
     container.innerHTML = "";
     container.appendChild(list);
+
+    container.querySelectorAll(".edit-btn").forEach(btn => {
+      btn.addEventListener("click", () => startEditDiscipline(btn.dataset.name));
+    });
+
+    container.querySelectorAll(".remove-btn").forEach(btn => {
+      btn.addEventListener("click", () => removeDisciplineSchedule(btn.dataset.name));
+    });
+
+    container.querySelectorAll(".cancel-edit-btn").forEach(btn => {
+      btn.addEventListener("click", cancelEditDiscipline);
+    });
+
+    container.querySelectorAll(".save-edit-btn").forEach(btn => {
+      btn.addEventListener("click", () => updateDisciplineSchedule(btn.dataset.name));
+    });
   }
 
   function renderResultsForm() {
     const container = document.getElementById("resultsForm");
-    const select = document.getElementById("resultDisciplineSelect");
-    const discipline = select.value;
+    const discipline = document.getElementById("resultDisciplineSelect").value;
 
-    if (data.disciplines.length === 0) {
+    if (currentData.disciplines.length === 0) {
       container.innerHTML = '<div class="hint">Nejdřív přidej disciplíny v Nastavení.</div>';
       return;
     }
 
-    if (data.teams.length === 0) {
+    if (currentData.teams.length === 0) {
       container.innerHTML = '<div class="hint">Nejdřív přidej týmy v Nastavení.</div>';
       return;
     }
 
-    const resultMap = data.disciplineResults[discipline] || {};
+    const resultMap = currentData.disciplineResults[discipline] || {};
     container.innerHTML = "";
 
-    data.teams.forEach((team) => {
+    currentData.teams.forEach((team) => {
       const row = document.createElement("div");
       row.className = "result-row";
+
       const label = document.createElement("div");
       label.className = "team-label";
       label.textContent = team;
@@ -382,9 +362,8 @@
     });
   }
 
-  function saveDisciplineResults() {
-    const select = document.getElementById("resultDisciplineSelect");
-    const discipline = select.value;
+  async function saveDisciplineResults() {
+    const discipline = document.getElementById("resultDisciplineSelect").value;
     const message = document.getElementById("resultsMessage");
 
     if (!discipline) {
@@ -395,12 +374,14 @@
     const resultMap = {};
     const usedPlaces = new Set();
 
-    for (const team of data.teams) {
+    for (const team of currentData.teams) {
       const input = document.getElementById(`result-${escapeId(team)}`);
       const raw = input ? input.value.trim() : "";
+
       if (raw === "") continue;
 
       const place = Number(raw);
+
       if (!Number.isInteger(place) || place < 1) {
         message.textContent = "Umístění musí být celé číslo od 1 výše.";
         return;
@@ -415,17 +396,23 @@
       resultMap[team] = place;
     }
 
+    const data = await loadData();
     data.disciplineResults[discipline] = resultMap;
-    saveData();
+    await saveData(data);
+
     message.textContent = "Výsledky byly uloženy.";
   }
 
+  document.getElementById("saveScheduleBtn").addEventListener("click", saveDisciplineSchedule);
+  document.getElementById("saveResultsBtn").addEventListener("click", saveDisciplineResults);
   document.getElementById("resultDisciplineSelect").addEventListener("change", renderResultsForm);
 
-  loadData();
-  renderDisciplineOptions();
-  renderSavedDates();
-  renderResultDisciplineOptions();
+  subscribeToData((data) => {
+    currentData = data;
+    renderDisciplineOptions();
+    renderSavedDates();
+    renderResultDisciplineOptions();
+  });
 </script>
 </body>
 </html>
