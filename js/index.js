@@ -45,10 +45,16 @@ function createRankingTable(rows) {
 
   rows.forEach((row, index) => {
     const tr = document.createElement("tr");
+
+    if (index === 0) tr.className = "rank-gold";
+    else if (index === 1) tr.className = "rank-silver";
+    else if (index === 2) tr.className = "rank-bronze";
+
     tr.innerHTML = `
       <td class="place-cell">${index + 1}.</td>
       <td class="team-name">${row.team}</td>
     `;
+
     tbody.appendChild(tr);
   });
 
