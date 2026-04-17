@@ -1,16 +1,5 @@
 import { subscribeToData } from "./firebase.js";
 
-const palette = [
-  "#4f46e5", "#0f766e", "#dc2626", "#ca8a04", "#9333ea",
-  "#2563eb", "#db2777", "#059669", "#ea580c", "#0891b2"
-];
-
-function teamColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
-  return palette[Math.abs(hash) % palette.length];
-}
-
 function formatDate(dateString) {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -37,54 +26,20 @@ function calculatePoints(teams, disciplineResults) {
     .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team, "cs"));
 }
 
-function createStandingsCards(rows) {
-  const grid = document.createElement("div");
-  grid.className = "standings-grid";
+function createTable(rows) {
+  const table = document.createElement("table");
+  table.className = "results-table";
+  table.innerHTML = "<thead><tr><th>Tým</th><th>Body</th></tr></thead>";
+  const tbody = document.createElement("tbody");
 
-  rows.forEach((rowData, index) => {
-    const color = teamColor(rowData.team);
-    const card = document.createElement("div");
-    card.className = `team-card ${index < 3 ? `top-${index + 1}` : ""}`;
-    card.style.setProperty("--team-color", color);
-    card.innerHTML = `
-      <div class="team-card-header">
-        <div class="team-name-badge">
-          <span class="team-dot"></span>
-          <div class="team-name-text">${rowData.team}</div>
-        </div>
-        <span class="team-rank">${index + 1}</span>
-      </div>
-      <div class="team-points-box">
-        <div class="team-points">${rowData.points}</div>
-        <div class="team-points-label">bodů</div>
-      </div>
-      <div class="team-meta">${index === 0 ? "Průběžný lídr turnaje" : "Průběžné pořadí turnaje"}</div>
-    `;
-    grid.appendChild(card);
+  rows.forEach((rowData) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td class="team-name">${rowData.team}</td><td class="points-cell">${rowData.points}</td>`;
+    tbody.appendChild(row);
   });
 
-  return grid;
-}
-
-function createUpcomingCards(items) {
-  const grid = document.createElement("div");
-  grid.className = "upcoming-grid";
-
-  items.forEach((item) => {
-    const card = document.createElement("div");
-    card.className = "upcoming-item";
-    card.innerHTML = `
-      <div class="upcoming-top">
-        <span class="upcoming-name">${item.name}</span>
-        <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
-      </div>
-      <div></div>
-      <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
-    `;
-    grid.appendChild(card);
-  });
-
-  return grid;
+  table.appendChild(tbody);
+  return table;
 }
 
 function renderHome(data) {
@@ -101,7 +56,7 @@ function renderHome(data) {
       <div class="hint">Jakmile je vyplníš, zobrazí se tady přehled bodů.</div>
     `;
   } else {
-    resultsContent.appendChild(createStandingsCards(calculatePoints(teams, disciplineResults)));
+    resultsContent.appendChild(createTable(calculatePoints(teams, disciplineResults)));
   }
 
   const upcoming = disciplines
@@ -127,7 +82,23 @@ function renderHome(data) {
     return;
   }
 
-  upcomingContent.appendChild(createUpcomingCards(upcoming));
+  const list = document.createElement("ul");
+  list.className = "upcoming-list";
+
+  upcoming.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "upcoming-item";
+    li.innerHTML = `
+      <div class="upcoming-top">
+        <span class="upcoming-name">${item.name}</span>
+        <span class="upcoming-date">${formatDate(item.date)}${item.time ? ` v ${item.time}` : ""}</span>
+      </div>
+      <div class="upcoming-meta">${item.place ? `Místo: ${item.place}` : "Místo zatím není vyplněné."}</div>
+    `;
+    list.appendChild(li);
+  });
+
+  upcomingContent.appendChild(list);
 }
 
 subscribeToData(renderHome);

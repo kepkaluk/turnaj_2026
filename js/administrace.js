@@ -59,6 +59,7 @@ function renderTeams() {
     btn.addEventListener("click", async () => {
       const data = await loadData();
       const removed = team;
+
       data.teams = data.teams.filter(t => t !== removed);
 
       Object.keys(data.disciplineResults).forEach((discipline) => {
